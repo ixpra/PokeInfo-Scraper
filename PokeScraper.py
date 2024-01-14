@@ -21,15 +21,12 @@ def get_pokemon_info(pokemon_name):
         # Extract base stats specifically
         stats_info = extract_base_stats(soup)
 
-        # Extract weaknesses specifically
-        weaknesses_info = extract_weaknesses(soup)
 
 
         # Print the parsed information
         print(f"Pokemon: {pokemon_name}")
         print(f"Evolution Information: {evolution_info}")
         print(f"Base Stats: {stats_info}")
-        print(f"Weaknesses: {weaknesses_info}")
 
 
     except requests.exceptions.HTTPError as http_err:
@@ -62,25 +59,30 @@ def extract_base_stats(soup):
         # Extract information from the table, assuming a specific structure
         if stats_table:
             # Extract base stats information
-            stats_info = '\n'.join([row.text.strip() for row in stats_table.find_all('tr')[1:]])
+            rows = stats_table.find_all('tr')
+
+            # Create a list to store the base stats information
+            stats_info_list = []
+
+            # Iterate through rows starting from the second row (skip header row)
+            for row in rows[1:]:
+                columns = row.find_all(['th', 'td'])
+
+                # Extract data from the columns
+                stat_name = columns[0].text.strip()
+                stat_value = columns[1].text.strip()
+                range_lv50 = columns[2].text.strip()
+                range_lv100 = columns[3].text.strip()
+
+                # Format the information
+                stat_info = f"{stat_name}: {stat_value}. At Lv. 50: {range_lv50} at Lv. 100: {range_lv100}"
+                stats_info_list.append(stat_info)
+
+            # Join the list into a string with newlines
+            stats_info = '\n'.join(stats_info_list)
             return stats_info
 
     return 'Base Stats not found'
-
-def extract_weaknesses(soup):
-    # Find the <th> tag containing the text 'Type effectiveness'
-    weaknesses_header = soup.find('th', string='Type effectiveness')
-
-    if weaknesses_header:
-        # If the <th> is found, find the table containing weaknesses
-        weaknesses_table = weaknesses_header.find_next('table')
-
-        # Extract information from the table, assuming a specific structure
-        if weaknesses_table:
-            weaknesses_info = '\n'.join([row.text.strip() for row in weaknesses_table.find_all('tr')[1:]])
-            return weaknesses_info
-
-    return 'Weaknesses not found'
 
 
 if __name__ == "__main__":
