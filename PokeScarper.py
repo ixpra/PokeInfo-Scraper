@@ -18,17 +18,19 @@ def get_pokemon_info(pokemon_name):
         # Extract evolution information specifically
         evolution_info = extract_evolution_info(soup)
 
-        # Extract generation information specifically
-        generation_info = extract_generation_info(soup)
+        # Extract base stats specifically
+        stats_info = extract_base_stats(soup)
 
-        # Extract type effectiveness information specifically
-        #type_effectiveness_info = extract_type_effectiveness_info(soup)
+        # Extract weaknesses specifically
+        weaknesses_info = extract_weaknesses(soup)
 
-        # Print the collected information
+
+        # Print the parsed information
         print(f"Pokemon: {pokemon_name}")
-        print(f"Evolution Information:\n{evolution_info}")
-        print(f"Generation Information:\n{generation_info}")
-        #print(f"Type Effectiveness Information:\n{type_effectiveness_info}")
+        print(f"Evolution Information: {evolution_info}")
+        print(f"Base Stats: {stats_info}")
+        print(f"Weaknesses: {weaknesses_info}")
+
 
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP error occurred: {http_err}")
@@ -47,47 +49,39 @@ def extract_evolution_info(soup):
         evolution_info = evolution_paragraph.text.strip() if evolution_paragraph else 'Not found'
         return evolution_info
     else:
-        return 'Not found'
+        return 'Evolution Not found'
 
-def extract_generation_info(soup):
-    # Find the section containing generation information
-    generation_section = soup.find('a', {'title': 'Generation'})
+def extract_base_stats(soup):
+    # Find the <th> tag containing the text 'Base stats'
+    stats_header = soup.find('th', string='Base stats')
 
-    if generation_section:
-        # Find the sibling <td> element
-        generation_td = generation_section.find_next('td')
+    if stats_header:
+        # If the <th> is found, find the table containing base stats
+        stats_table = stats_header.find_next('table')
 
-        # Check if the <td> element exists and has text
-        generation_info = generation_td.text.strip() if generation_td else 'Not found'
-        return generation_info
-    else:
-        return 'Not found'
+        # Extract information from the table, assuming a specific structure
+        if stats_table:
+            # Extract base stats information
+            stats_info = '\n'.join([row.text.strip() for row in stats_table.find_all('tr')[1:]])
+            return stats_info
 
-#def extract_type_effectiveness_info(soup):
-    # Find the section containing type effectiveness information
-    type_effectiveness_section = soup.find('span', {'id': 'Type_effectiveness'})
+    return 'Base Stats not found'
 
-    if type_effectiveness_section:
-        # Find the sibling <table> element
-        type_effectiveness_table = type_effectiveness_section.find_next('table')
+def extract_weaknesses(soup):
+    # Find the <th> tag containing the text 'Type effectiveness'
+    weaknesses_header = soup.find('th', string='Type effectiveness')
 
-        if type_effectiveness_table:
-            # Extract information from <td> elements
-            type_effectiveness_info = ''
-            for row in type_effectiveness_table.find_all('tr')[1:]:
-                cells = row.find_all('td')
+    if weaknesses_header:
+        # If the <th> is found, find the table containing weaknesses
+        weaknesses_table = weaknesses_header.find_next('table')
 
-                # Check if the row has enough cells
-                if len(cells) >= 2:
-                    type_name = cells[0].text.strip()
-                    effectiveness = cells[1].text.strip()
-                    type_effectiveness_info += f"{type_name}: {effectiveness}\n"
-                else:
-                    type_effectiveness_info += 'Not found\n'
+        # Extract information from the table, assuming a specific structure
+        if weaknesses_table:
+            weaknesses_info = '\n'.join([row.text.strip() for row in weaknesses_table.find_all('tr')[1:]])
+            return weaknesses_info
 
-            return type_effectiveness_info
+    return 'Weaknesses not found'
 
-    return 'Not found'
 
 if __name__ == "__main__":
     # Get input from the user
