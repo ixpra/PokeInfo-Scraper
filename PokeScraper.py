@@ -21,11 +21,14 @@ def get_pokemon_info(pokemon_name):
         # Extract basic pokemon information specifically
         basic_info = extract_basic_info(soup)
 
+        # Extract basic pokemon information specifically
+        stats_info = extract_base_stats_info(soup)
 
         # Print the parsed information
         print(f"Pokemon: {pokemon_name}")
         print(f"Basic Pokemon Info: {basic_info}")
-        print(f"Evolution Information: {evolution_info}")
+        print(f"Pokemon Evolution Information: {evolution_info}")
+        print(f"{pokemon_name}'s Base Stats: {stats_info}")
 
 
     except requests.exceptions.HTTPError as http_err:
@@ -48,7 +51,7 @@ def extract_evolution_info(soup):
         return 'Evolution Not found'
 
 def extract_basic_info(soup):
-    # Find the first <p> tag with class 'roundy'
+    # Find the first <p> tag 
     basic_info_paragraph = soup.find('p')
 
     if basic_info_paragraph:
@@ -58,7 +61,27 @@ def extract_basic_info(soup):
 
     return 'Basic Pokemon Info Not Found'
 
+def extract_base_stats_info(soup):
+    # Find the header row that contains 'HP', 'Attack', 'Defense', etc.
+    header_row = soup.find('tr', style='background: #FF5959; text-align:center')
 
+    if header_row:
+        # Extract the names of the stats
+        stat_names = [th.text.strip() for th in header_row.find_all('th')]
+
+        # Find the row containing the base stats values
+        base_stats_row = soup.find('tr', style='background: #FF5959; text-align:center').find_next('tr')
+
+        # Extract the base stats values
+        base_stats_values = [td.text.strip() for td in base_stats_row.find_all(['th', 'td'])]
+
+        # Combine the stat names and values into a formatted string
+        stats_info_list = [f"{stat_names[i]}: {base_stats_values[i]}" for i in range(len(stat_names))]
+        stats_info = '\n'.join(stats_info_list)
+
+        return stats_info
+
+    return 'Base Stats Information Not Found'
 
 
 if __name__ == "__main__":
