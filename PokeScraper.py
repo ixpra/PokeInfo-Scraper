@@ -17,16 +17,15 @@ def get_pokemon_info(pokemon_name):
 
         # Extract evolution information specifically
         evolution_info = extract_evolution_info(soup)
-
-        # Extract base stats specifically
-        stats_info = extract_base_stats(soup)
-
+        
+        # Extract basic pokemon information specifically
+        basic_info = extract_basic_info(soup)
 
 
         # Print the parsed information
         print(f"Pokemon: {pokemon_name}")
+        print(f"Basic Pokemon Info: {basic_info}")
         print(f"Evolution Information: {evolution_info}")
-        print(f"Base Stats: {stats_info}")
 
 
     except requests.exceptions.HTTPError as http_err:
@@ -48,41 +47,18 @@ def extract_evolution_info(soup):
     else:
         return 'Evolution Not found'
 
-def extract_base_stats(soup):
-    # Find the <th> tag containing the text 'Base stats'
-    stats_header = soup.find('th', string='Base stats')
+def extract_basic_info(soup):
+    # Find the first <p> tag with class 'roundy'
+    basic_info_paragraph = soup.find('p')
 
-    if stats_header:
-        # If the <th> is found, find the table containing base stats
-        stats_table = stats_header.find_next('table')
+    if basic_info_paragraph:
+        # Extract text content of the <p> tag
+        basic_info = basic_info_paragraph.text.strip()
+        return basic_info
 
-        # Extract information from the table, assuming a specific structure
-        if stats_table:
-            # Extract base stats information
-            rows = stats_table.find_all('tr')
+    return 'Basic Pokemon Info Not Found'
 
-            # Create a list to store the base stats information
-            stats_info_list = []
 
-            # Iterate through rows starting from the second row (skip header row)
-            for row in rows[1:]:
-                columns = row.find_all(['th', 'td'])
-
-                # Extract data from the columns
-                stat_name = columns[0].text.strip()
-                stat_value = columns[1].text.strip()
-                range_lv50 = columns[2].text.strip()
-                range_lv100 = columns[3].text.strip()
-
-                # Format the information
-                stat_info = f"{stat_name}: {stat_value}. At Lv. 50: {range_lv50} at Lv. 100: {range_lv100}"
-                stats_info_list.append(stat_info)
-
-            # Join the list into a string with newlines
-            stats_info = '\n'.join(stats_info_list)
-            return stats_info
-
-    return 'Base Stats not found'
 
 
 if __name__ == "__main__":
